@@ -1,54 +1,68 @@
 <template>
-  <div class="div">
-    <h1>Database</h1>
-    <b-table striped hover :items="items" :fields="fields"></b-table>
+  <div class="dataTable">
+        <h1>Blacklisted Accounts and Contracts</h1>
+        <b-table striped hover :items="items" :fields="fields">
+          <template slot="show_details" slot-scope="row">
+            <b-button size="sm" @click.stop="row.toggleDetails" class="mr-2">
+              {{ row.detailsShowing ? 'Hide' : 'Show'}} Details
+            </b-button>
+          </template>
+          <template slot="row-details" slot-scope="row">
+            <b-card :title="infoCardTitle(row.item.Account)">
+              <b-row>
+                <b-col>
+                  <p>{{row.item.details}}</p>
+                </b-col>
+              </b-row>
+              <b-button-group>
+                <b-button variant="secondary"
+                          v-on:click="modifyContract(row.item.Account, row.item.RiskLevel, row.item.details)">Modify
+                  Blacklist Entry
+                </b-button>
+              </b-button-group>
+            </b-card>
+          </template>
+        </b-table>
+    <b-modal ref="myModalRef" title="Update Blacklist Entry">
+      <AddDatabaseEntry v-bind:update="true" v-bind:account_name="modifyAccountName"
+                        v-bind:details="modifyDetails"
+                        v-bind:risk_level="modifyRiskLevel"></AddDatabaseEntry>
+      <div slot="modal-footer">
+        <b-btn class="float-right" variant="primary" @click="hideModal()">
+          Close
+        </b-btn>
+      </div>
+    </b-modal>
   </div>
 </template>
 
 <script>
+  import AddDatabaseEntry from "./AddDatabaseEntry";
+
   export default {
     name: "Database",
+    components: {AddDatabaseEntry},
     data: function () {
       return {
         fields: {
-          CVE_number: {
+          Account: {
             sortable: true
           },
-          CVSS_score: {
+          RiskLevel: {
             sortable: true
           },
-          details: {
-            sortable: true
+          show_details: {
+            sortable: false
           }
         },
-
-        items: [
-          {
-            CVE_number: "2018-012",
-            CVSS_score: 10.0,
-            details: "remote code execution",
-            _cellVariants: {CVSS_score: this.getCVSSStyle(10.0)},
-          },
-          {
-            CVE_number: "2018-345",
-            CVSS_score: 8.5,
-            details: "remote code execution",
-            _cellVariants: {CVSS_score: this.getCVSSStyle(8.5)},
-          },
-          {
-            CVE_number: "2018-678",
-            CVSS_score: 5.8,
-            details: "denial of service",
-            _cellVariants: {CVSS_score: this.getCVSSStyle(5.8)},
-          },
-          {
-            CVE_number: "2018-900",
-            CVSS_score: 3.0,
-            details: "cross-site scripting",
-            _cellVariants: {CVSS_score: this.getCVSSStyle(3.0)},
-          },
-        ]
+        modifyAccountName: "",
+        modifyRiskLevel: 0,
+        modifyDetails: "",
+        items: []
       }
+    },
+    mounted: function () {
+      this.getEntries();
     },
     methods: {
       getCVSSStyle(CVSS_score) {
@@ -66,18 +80,42 @@
           return 'info';
         }
       },
-      addEntry() {
-        this.items.push({
-          CVE_number: this.entryForm.CVE_number,
-          CVSS_score: this.entryForm.CVSS_score,
-          details: this.entryForm.details,
-          _cellVariants: {CVSS_score: this.getCVSSStyle(this.entryForm.CVSS_score)}
-        })
+      getEntries() {
+        this.$eos.getTableRows(true, "firewall", "firewall", "cve").then(response => {
+          this.items = [];
+          for (let row of response.rows) {
+            this.items.push({
+              Account: row.accountName,
+              RiskLevel: row.riskLevel,
+              details: row.details,
+              _cellVariants: {RiskLevel: this.getCVSSStyle(row.riskLevel)},
+            });
+          }
+        });
+      },
+      infoCardTitle(accountName) {
+        return "Blacklist Entry for " + accountName;
+      },
+      modifyContract(accountName, riskLevel, details) {
+        this.$refs.myModalRef.show();
+        this.modifyAccountName = accountName;
+        this.modifyRiskLevel = riskLevel;
+        this.modifyDetails = details;
+      },
+      hideModal() {
+        this.$refs.myModalRef.hide();
+        this.modifyAccountName = "";
+        this.modifyRiskLevel = 0;
+        this.modifyDetails = "";
+        this.getEntries();
       }
     }
   }
 </script>
 
 <style scoped>
-
+  .dataTable{
+    padding-right: 20px;
+    padding-left: 20px;
+  }
 </style>
