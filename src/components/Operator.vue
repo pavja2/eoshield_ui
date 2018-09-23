@@ -5,38 +5,61 @@
       <b-navbar-brand to="Operator">EOShield</b-navbar-brand>
       <b-collapse is-nav id="nav_collapse">
         <b-navbar-nav>
-          <b-nav-item v-on:click="showAddDatabaseEntry">Add Database Entry</b-nav-item>
-          <b-nav-item v-on:click="showDatabase">Database</b-nav-item>
+          <b-nav-item v-on:click="showDatabase">Malicious Accounts</b-nav-item>
+          <b-nav-item v-on:click="showMalware">Malicious Contracts</b-nav-item>
+          <b-nav-item v-on:click="showWhitelistDatabase">Trusted Accounts</b-nav-item>
+          <b-nav-item v-on:click="showReports">Reported Accounts</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
-    <AddDatabaseEntry v-if="!AddDatabaseEntryHidden"></AddDatabaseEntry>
-    <Database v-if="!DatabaseHidden"></Database>
+    <Whitelist v-if="!whitelistDatabaseHidden"></Whitelist>
+    <Database v-if="!databaseHidden"></Database>
+    <Malware v-if="!malwareDatabaseHidden"></Malware>
   </div>
 </template>
 
 <script>
   import AddDatabaseEntry from "@/components/AddDatabaseEntry";
   import Database from "@/components/Database";
+  import Malware from "@/components/Malware";
+  import Whitelist from "@/components/Whitelist";
 
   export default {
     name: "Operator",
-    components: {Database, AddDatabaseEntry},
+    components: {Database, AddDatabaseEntry, Malware, Whitelist},
     data: function () {
       return {
-        AddDatabaseEntryHidden: true,
-        DatabaseHidden: true,
+        whitelistDatabaseHidden: true,
+        databaseHidden: false,
+        reportedDatabaseHidden: true,
+        malwareDatabaseHidden: true,
       }
     },
     methods: {
-      showAddDatabaseEntry() {
-        this.AddDatabaseEntryHidden = false;
-        this.DatabaseHidden = true;
+      showWhitelistDatabase() {
+        this.whitelistDatabaseHidden = false;
+        this.databaseHidden = true;
+        this.malwareDatabaseHidden = true;
+        this.reportedDatabaseHidden = true;
       },
       showDatabase() {
-        this.AddDatabaseEntryHidden = true;
-        this.DatabaseHidden = false;
+        this.whitelistDatabaseHidden = true;
+        this.databaseHidden = false;
+        this.malwareDatabaseHidden = true;
+        this.reportedDatabaseHidden = true;
       },
+      showMalware(){
+        this.whitelistDatabaseHidden = true;
+        this.databaseHidden = true;
+        this.malwareDatabaseHidden = false;
+        this.reportedDatabaseHidden = true;
+      },
+      showReports(){
+        this.whitelistDatabaseHidden = true;
+        this.databaseHidden = true;
+        this.malwareDatabaseHidden = true;
+        this.reportedDatabaseHidden = false;
+      }
     }
   }
 </script>

@@ -5,13 +5,17 @@ import App from './App'
 import router from './router'
 import ICountUp from 'vue-countup-v2'
 import BootstrapVue from 'bootstrap-vue'
+import VueGoodTablePlugin from 'vue-good-table'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+import 'vue-good-table/dist/vue-good-table.css'
 import Eos from 'eosjs'
 
 Vue.config.productionTip = false
 Vue.use(BootstrapVue);
+Vue.use(VueGoodTablePlugin);
 Vue.component(ICountUp.name, ICountUp);
+
 
 let eos = Eos({
   keyProvider: '5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3',

@@ -1,41 +1,38 @@
 <template>
   <div class="dataTable">
-    <span><h1>Malicious Accounts<b-button class="float-right" variant="success" v-on:click="createModal()">+</b-button></h1></span>
-
+    <h1>Trusted Contracts <b-button class="float-right" variant="success" v-on:click="createModal()">+</b-button></h1>
     <b-table striped hover :items="items" :fields="fields">
-          <template slot="show_details" slot-scope="row">
-            <b-button size="sm" @click.stop="row.toggleDetails" class="mr-2">
-              {{ row.detailsShowing ? 'Hide' : 'Show'}} Details
+      <template slot="show_details" slot-scope="row">
+        <b-button size="sm" @click.stop="row.toggleDetails" class="mr-2">
+          {{ row.detailsShowing ? 'Hide' : 'Show'}} Details
+        </b-button>
+      </template>
+      <template slot="row-details" slot-scope="row">
+        <b-card :title="infoCardTitle(row.item.Account)">
+          <b-row>
+            <b-col>
+              <p>{{row.item.details}}</p>
+            </b-col>
+          </b-row>
+          <b-button-group>
+            <b-button variant="secondary"
+                      v-on:click="modifyTrusted(row.item.Account, row.item.Signature, row.item.details)">Modify
+              Trusted Entry
             </b-button>
-          </template>
-          <template slot="row-details" slot-scope="row">
-            <b-card :title="infoCardTitle(row.item.Account)">
-              <b-row>
-                <b-col>
-                  <p>{{row.item.details}}</p>
-                </b-col>
-              </b-row>
-              <b-button-group>
-                <b-button variant="secondary"
-                          v-on:click="modifyContract(row.item.Account, row.item.RiskLevel, row.item.details)">Modify
-                  Account Entry
-                </b-button>
-              </b-button-group>
-            </b-card>
-          </template>
-        </b-table>
-    <b-modal ref="myModalRef" title="Update Account Entry">
-      <AddDatabaseEntry v-bind:update="true" v-bind:account_name="modifyAccountName"
-                        v-bind:details="modifyDetails"
-                        v-bind:risk_level="modifyRiskLevel"></AddDatabaseEntry>
+          </b-button-group>
+        </b-card>
+      </template>
+    </b-table>
+    <b-modal ref="myModalRef" title="Update Verified Account">
+      <AddWhitelistEntry :account_name="modifyAccountName" :signature="modifySignature" :details="modifyDetails" :update="true"></AddWhitelistEntry>
       <div slot="modal-footer">
         <b-btn class="float-right" variant="primary" @click="hideModal()">
           Close
         </b-btn>
       </div>
     </b-modal>
-    <b-modal ref="createModalRef" title="Create Account Entry">
-      <AddDatabaseEntry v-bind:update="false"></AddDatabaseEntry>
+    <b-modal ref="createModalRef" title="Create Trusted Entry">
+      <AddWhitelistEntry v-bind:update="false"></AddWhitelistEntry>
       <div slot="modal-footer">
         <b-btn class="float-right" variant="primary" @click="hideModal()">
           Close
@@ -46,18 +43,18 @@
 </template>
 
 <script>
-  import AddDatabaseEntry from "./AddDatabaseEntry";
+  import AddWhitelistEntry from "./AddWhitelistEntry";
 
   export default {
-    name: "Database",
-    components: {AddDatabaseEntry},
+    name: "Whitelist",
+    components: {AddWhitelistEntry},
     data: function () {
       return {
         fields: {
           Account: {
             sortable: true
           },
-          RiskLevel: {
+          Signature: {
             sortable: true
           },
           show_details: {
@@ -65,7 +62,7 @@
           }
         },
         modifyAccountName: "",
-        modifyRiskLevel: 0,
+        modifySignature: "",
         modifyDetails: "",
         items: []
       }
@@ -75,7 +72,6 @@
     },
     methods: {
       getCVSSStyle(CVSS_score) {
-        console.log(CVSS_score)
         if (CVSS_score >= 9.0) {
           return 'danger';
         }
@@ -90,39 +86,38 @@
         }
       },
       getEntries() {
-        this.$eos.getTableRows(true, "firewall", "firewall", "cve").then(response => {
+        this.$eos.getTableRows(true, "firewall", "firewall", "trusted").then(response => {
           this.items = [];
           for (let row of response.rows) {
             this.items.push({
-              Account: row.accountName,
-              RiskLevel: row.riskLevel,
-              details: row.details,
+              Account: row.account,
+              Signature: row.codeHash,
+              details: row.description,
               _cellVariants: {RiskLevel: this.getCVSSStyle(row.riskLevel)},
             });
           }
         });
       },
       infoCardTitle(accountName) {
-        return "Malicious Account Entry for " + accountName;
+        return "Trusted Entry for " + accountName;
       },
-      modifyContract(accountName, riskLevel, details) {
+      modifyTrusted(account, codeHash, details) {
         this.$refs.myModalRef.show();
-        this.modifyAccountName = accountName;
-        this.modifyRiskLevel = riskLevel;
+        this.modifyAccountName = account;
+        this.modifySignature = codeHash ;
         this.modifyDetails = details;
       },
       hideModal() {
         this.$refs.myModalRef.hide();
         this.$refs.createModalRef.hide();
         this.modifyAccountName = "";
-        this.modifyRiskLevel = 0;
+        this.modifySignature = "";
         this.modifyDetails = "";
         this.getEntries();
       },
       createModal(){
         this.$refs.createModalRef.show();
       }
-
     }
   }
 </script>

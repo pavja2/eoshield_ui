@@ -1,46 +1,68 @@
 <template>
   <div>
-    <h1>Add Database Entry</h1>
-    <b-container fluid>
-      <b-row>
-        <b-col></b-col>
-        <b-col>
-          <b-form v-on:submit="addEntry">
-            <b-form-group label="CVE Number" label-for="CVE_number">
-              <b-form-input id="CVE_number" class="form-control" v-model="entryForm.CVE_number" placeholder="CVE-2018-1234" required></b-form-input>
-            </b-form-group>
-            <b-form-group label="CVSSScore" label-for="CVSS_score">
-              <b-form-input id="CVSS_score" class="form-control" v-model="entryForm.CVSS_score" placeholder="10.0" required></b-form-input>
-            </b-form-group>
-            <b-form-group label="Details" label-for="details">
-              <b-form-textarea id="details" class="form-control" v-model="entryForm.details" placeholder="Details Here" required :rows="3" :max-rows="6">></b-form-textarea>
-            </b-form-group>
-            <b-button type="submit" variant="info">Submit</b-button>
-          </b-form>
-        </b-col>
-        <b-col></b-col>
-      </b-row>
-    </b-container>
+    <b-card>
+        <b-form v-on:submit="addEntry">
+          <b-form-group v-if="!update" label="Account Name" label-for="account_name">
+            <b-form-input id="account_name" class="form-control" v-model="account_name" placeholder="Name of the Malicious Account" required></b-form-input>
+          </b-form-group>
+          <p v-if="update"><b>Account: </b> {{account_name}}</p>
+          <b-form-group label="Risk Level" label-for="risk_level">
+            <b-form-input id="risk_level" class="form-control" v-model="risk_level" placeholder="10" required></b-form-input>
+          </b-form-group>
+          <b-form-group label="Details" label-for="details">
+            <b-form-textarea id="details" class="form-control" v-model="details" placeholder="Details Here" required :rows="3" :max-rows="6">></b-form-textarea>
+          </b-form-group>
+          <b-button v-if="!update" v-on:click="addEntry">Submit</b-button>
+          <b-button v-if="update" v-on:click="modifyEntry">Update</b-button>
+        </b-form>
+    </b-card>
   </div>
 </template>
 
 <script>
   export default {
     name: "AddDatabaseEntry",
-    data: function () {
-      return {
-        entryForm: {
-          CVE_number: '',
-          CVSS_score: '',
-          details: '',
-        },
+    props: {
+      account_name: {
+
+      },
+      risk_level: {
+
+      },
+      details: {
+
+      },
+      update: {
+        default: false,
       }
+    },
+    data: function () {
+      return {}
     },
     methods: {
       addEntry() {
-        console.log(this.entryForm.CVE_number);
-        console.log(this.entryForm.CVSS_score);
-        console.log(this.entryForm.details);
+        this.$eos.contract('firewall').then(myaccount =>
+          myaccount.addacct(this.account_name, this.risk_level,
+            "", this.details, "", {authorization: 'firewall'}).then(
+              response => {
+                console.log(response);
+              },
+            error => {
+                console.log(error);
+            }
+          )
+        );
+      },
+      modifyEntry(){
+        this.$eos.contract('firewall').then(myaccount =>
+        myaccount.updateacct(this.account_name, this.risk_level, "", this.details, "", {authorization: 'firewall'}).then(
+          response => {
+            console.log(response);
+          },
+          error => {
+            console.log(error);
+          }
+        ));
       }
     }
   }
