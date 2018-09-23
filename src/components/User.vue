@@ -1,28 +1,6 @@
 <template>
-  <div class="page bg-dark text-white">
-    <b-container fluid>
-      <!--
-      <b-row>
-        <b-col></b-col>
-        <b-col>
-          <div v-if='account_result == ""' bg-variant="transparent" class="info_card">
-          </div>
-          <b-card v-if="account_result === 'unknown'" header="Unknown Account" bg-variant="warning" class="info_card">
-          <p class="card-text">We don't have any information on this account. If you think the account is malicious click the report button to report it.</p>
-          <center><b-btn variant="primary">Report Account</b-btn>
-          </center>
-          </b-card>
-          <b-card v-if="account_result === 'safe'" header="Safe Account" bg-variant="success" class="info_card">
-            <p class="card-text">That account has been verified as secure. Feel free to use it.</p>
-            <center><b-btn variant="primary">Report Account</b-btn>
-            </center>
-          </b-card>
-          <b-card v-if="account_result === 'bad'" header="Dangerous Account" bg-variant="danger" class="info_card">
-            <p class="card-text">That count has been associated with malicious activity. Exercise extreme caution when interacting with it!</p>
-          </b-card>
-        </b-col>
-      </b-row>-->
-
+  <div class="page bg-dark">
+    <b-container fluid class="text-white">
       <b-row class="account_row">
         <b-col cols="3"></b-col>
         <b-col cols="6">
@@ -50,67 +28,40 @@
         </b-col>
         <b-col cols="3"></b-col>
       </b-row>
-
-      <!--
-      <b-row>
-        <b-col></b-col>
-        <b-col cols="8">
-          <h1 class="report_text">Report a User</h1>
+      <b-row class="bottom">
+        <b-col cols="3" class="right">
+          <b-button variant="secondary" v-b-modal.modalForm>Report</b-button>
         </b-col>
-        <b-col></b-col>
+        <b-col cols="6"></b-col>
         <b-col></b-col>
       </b-row>
-      <b-row>
-        <b-col></b-col>
-        <b-col cols="8">
-          <b-form inline v-on:submit="report">
-            <b-input-group>
-              <b-form-input class="bg-transparent report_input_1" v-model=reportForm.account_name
-                            placeholder="account name"/>
-              <b-form-input class="bg-transparent report_input_2" v-model=reportForm.reason
-                            placeholder="Why are you reporting this user?"/>
-              <b-input-group-append>
-                <b-btn type="submit">Report</b-btn>
-              </b-input-group-append>
-            </b-input-group>
-          </b-form>
-        </b-col>
-        <b-col></b-col>
-        <b-col></b-col>
-      </b-row>
-      <b-row>
-        <b-col></b-col>
-        <b-col cols="8">
-          <h1>
-            <b-badge class="report_results" v-if="!SubmitHidden" variant="success">Submitted</b-badge>
-          </h1>
-        </b-col>
-        <b-col></b-col>
-        <b-col></b-col>
-      </b-row>-->
     </b-container>
+    <b-modal ref="modalForm" id="modalForm" title="Report an Account">
+      <b-form v-on:submit="report">
+        <b-form-input id="account_name" class="form-fields" v-model="reportForm.submitter_account_name" placeholder="Your Account Name" required></b-form-input>
+        <b-form-input id="account_name" class="form-fields" v-model="reportForm.malicious_account_name" placeholder="Malicious Account Name" required></b-form-input>
+        <b-form-textarea id="reasons" class="form-fields" v-model="reportForm.reason" placeholder="Why are you reporting this account?" required :rows="3" :max-rows="6"></b-form-textarea>
+        <b-button type="submit" class="form-fields" variant="secondary">Submit Report</b-button>
+      </b-form>
+    </b-modal>
   </div>
 </template>
 
 <script>
-  import PieChart from '@/components/PieChart'
-
   export default {
     name: "User",
-    components: {PieChart},
     data: function () {
       return {
         number: 0,
         account_name: '',
         account_result: '',
-        accountType: '',
-        SubmitHidden: true,
         lowCount: 0,
         medCount: 0,
         highCount: 0,
         critCount: 0,
         reportForm: {
-          account_name: '',
+          submitter_account_name: '',
+          malicious_account_name: '',
           reason: '',
         },
       };
@@ -118,35 +69,7 @@
     mounted: function () {
       this.getStats();
     },
-    computed: {
-      pieData: function () {
-        return {
-          labels: ['Low', 'Medium', 'High', 'Critical'],
-          datasets:
-            [
-              {
-                backgroundColor: [
-                  '#4fdf4f',
-                  '#FFB653',
-                  '#F28A08',
-                  '#f87979',
-                ],
-                data: [
-                  this.lowCount,
-                  this.medCount,
-                  this.highCount,
-                  this.critCount,
-                ],
-              }
-            ]
-        }
-      }
-    },
     methods: {
-      onReady: function (instance, CountUp) {
-        const that = this;
-        instance.update(that.endVal + 100);
-      },
       getStats() {
         this.$eos.getTableRows({
           json: true,
@@ -194,7 +117,10 @@
           ));
         },
       report() {
-        this.SubmitHidden = false;
+        this.$refs.modalForm.hide();
+        console.log(this.reportForm.submitter_account_name);
+        console.log(this.reportForm.malicious_account_name);
+        console.log(this.reportForm.reason);
       }
     }
   }
@@ -213,6 +139,8 @@
     font-style: italic;
     font-size: 60px;
     margin-bottom: 9px;
+    margin-left:9px;
+    margin-right:15px;
   }
 
   .account_input {
@@ -222,36 +150,22 @@
     color: white;
     font-style: italic;
     width: 340px;
-    font-size: 50px;
-    height: 70px;
+    height:80px;
+    font-size:60px;
+    border-radius: 0 !important;
   }
 
-  .account_results {
+  .bottom {
+    position:absolute;
+    bottom: 5%;
+    width: 100%;
+  }
+
+  .right {
+    margin:0px;
+  }
+
+  .form-fields {
     margin-bottom: 10px;
-    margin-left: 0px;
-    margin-right: 0px;
-  }
-
-  .report_text {
-    margin-top: 5px;
-    margin-left: 0px;
-    margin-right: 0px;
-  }
-
-  .report_input_1 {
-    width: 200px;
-    margin-left: 0px;
-    margin-right: 0px;
-    margin-bottom: 0px;
-  }
-
-  .report_input_2 {
-    width: 450px;
-  }
-
-  .report_results {
-    margin-top: 0px;
-    margin-left: 0px;
-    margin-right: 0px;
   }
 </style>
