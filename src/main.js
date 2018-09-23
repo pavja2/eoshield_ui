@@ -10,12 +10,8 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 import Eos from 'eosjs'
 
 Vue.config.productionTip = false
-<<<<<<< HEAD
-Vue.use(BootstrapVue)
-Vue.component(ICountUp.name, ICountUp);
-=======
 Vue.use(BootstrapVue);
-
+Vue.component(ICountUp.name, ICountUp);
 
 let eos = Eos({
   keyProvider: '5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3',
@@ -24,7 +20,6 @@ let eos = Eos({
 });
 
 Vue.prototype.$eos = eos;
->>>>>>> c53a1392f9597039e60d6cad4f6f1e6ee105fa57
 
 /* eslint-disable no-new */
 new Vue({

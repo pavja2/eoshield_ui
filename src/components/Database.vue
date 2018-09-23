@@ -65,14 +65,6 @@
         else if (CVSS_score < 4.0) {
           return 'info';
         }
-      },
-      addEntry() {
-        this.items.push({
-          CVE_number: this.entryForm.CVE_number,
-          CVSS_score: this.entryForm.CVSS_score,
-          details: this.entryForm.details,
-          _cellVariants: {CVSS_score: this.getCVSSStyle(this.entryForm.CVSS_score)}
-        })
       }
     }
   }
