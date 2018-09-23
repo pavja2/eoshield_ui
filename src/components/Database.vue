@@ -1,7 +1,8 @@
 <template>
   <div class="dataTable">
-        <h1>Blacklisted Accounts and Contracts</h1>
-        <b-table striped hover :items="items" :fields="fields">
+    <span><h1>Malicious Accounts<b-button class="float-right" variant="success" v-on:click="createModal()">+</b-button></h1></span>
+
+    <b-table striped hover :items="items" :fields="fields">
           <template slot="show_details" slot-scope="row">
             <b-button size="sm" @click.stop="row.toggleDetails" class="mr-2">
               {{ row.detailsShowing ? 'Hide' : 'Show'}} Details
@@ -17,16 +18,24 @@
               <b-button-group>
                 <b-button variant="secondary"
                           v-on:click="modifyContract(row.item.Account, row.item.RiskLevel, row.item.details)">Modify
-                  Blacklist Entry
+                  Account Entry
                 </b-button>
               </b-button-group>
             </b-card>
           </template>
         </b-table>
-    <b-modal ref="myModalRef" title="Update Blacklist Entry">
+    <b-modal ref="myModalRef" title="Update Account Entry">
       <AddDatabaseEntry v-bind:update="true" v-bind:account_name="modifyAccountName"
                         v-bind:details="modifyDetails"
                         v-bind:risk_level="modifyRiskLevel"></AddDatabaseEntry>
+      <div slot="modal-footer">
+        <b-btn class="float-right" variant="primary" @click="hideModal()">
+          Close
+        </b-btn>
+      </div>
+    </b-modal>
+    <b-modal ref="createModalRef" title="Create Account Entry">
+      <AddDatabaseEntry v-bind:update="false"></AddDatabaseEntry>
       <div slot="modal-footer">
         <b-btn class="float-right" variant="primary" @click="hideModal()">
           Close
@@ -94,7 +103,7 @@
         });
       },
       infoCardTitle(accountName) {
-        return "Blacklist Entry for " + accountName;
+        return "Malicious Account Entry for " + accountName;
       },
       modifyContract(accountName, riskLevel, details) {
         this.$refs.myModalRef.show();
@@ -104,11 +113,16 @@
       },
       hideModal() {
         this.$refs.myModalRef.hide();
+        this.$refs.createModalRef.hide();
         this.modifyAccountName = "";
         this.modifyRiskLevel = 0;
         this.modifyDetails = "";
         this.getEntries();
+      },
+      createModal(){
+        this.$refs.createModalRef.show();
       }
+
     }
   }
 </script>
