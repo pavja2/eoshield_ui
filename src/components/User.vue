@@ -1,6 +1,7 @@
 <template>
   <div class="page bg-dark text-white">
-    <b-container>
+    <b-container fluid>
+      <!--
       <b-row>
         <b-col></b-col>
         <b-col>
@@ -20,10 +21,11 @@
             <p class="card-text">That count has been associated with malicious activity. Exercise extreme caution when interacting with it!</p>
           </b-card>
         </b-col>
-      </b-row>
+      </b-row>-->
+
       <b-row class="account_row">
-        <b-col></b-col>
-        <b-col cols="8">
+        <b-col cols="3"></b-col>
+        <b-col cols="6">
           <b-form inline>
             <h1 class="account_text">Can I trust</h1>
             <b-input class="account_input bg-transparent mb-2 mr-sm-2 mb-sm-0" v-on:change="checkAccount(account_name)"
@@ -31,8 +33,25 @@
             <h1 class="account_text">?</h1>
           </b-form>
         </b-col>
-        <b-col></b-col>
+        <b-col cols="3"></b-col>
       </b-row>
+      <b-row>
+        <b-col cols="3"></b-col>
+        <b-col cols="6">
+          <b-alert show variant="danger" v-if="account_result === 'bad'"><b>No: </b> That account has been associated
+            with malicious activity. Exercise extreme caution when interacting with it!
+          </b-alert>
+          <b-alert show variant="success" v-if="account_result === 'safe'"><b>Yes: </b> That account has been thoroughly
+            vetted by EOShield and should be secure.
+          </b-alert>
+          <b-alert show variant="warning" v-if="account_result === 'unknown'"><b> Maybe: </b> No security issues have
+            been reported with the account but it has not been verified either.
+          </b-alert>
+        </b-col>
+        <b-col cols="3"></b-col>
+      </b-row>
+
+      <!--
       <b-row>
         <b-col></b-col>
         <b-col cols="8">
@@ -68,7 +87,7 @@
         </b-col>
         <b-col></b-col>
         <b-col></b-col>
-      </b-row>
+      </b-row>-->
     </b-container>
   </div>
 </template>
@@ -96,7 +115,7 @@
         },
       };
     },
-    mounted: function(){
+    mounted: function () {
       this.getStats();
     },
     computed: {
@@ -129,7 +148,13 @@
         instance.update(that.endVal + 100);
       },
       getStats() {
-        this.$eos.getTableRows({json:true, code:"firewall", scope:"firewall", table:"cve", limit:"1000"}).then(response => {
+        this.$eos.getTableRows({
+          json: true,
+          code: "firewall",
+          scope: "firewall",
+          table: "cve",
+          limit: "1000"
+        }).then(response => {
           this.lowCount = 0;
           this.medCount = 0;
           this.highCount = 0;
@@ -152,20 +177,22 @@
         });
       },
       checkAccount(account_name) {
-        this.account_result = account_name;
-        if (account_name === "Flavio") {
-          this.account_result = 'safe';
-        }
-        else if (account_name === "Eve") {
-          this.account_result = 'bad';
-        }
-        else if(account_name === ''){
-          this.account_result = ''
-        }
-        else {
-          this.account_result = 'unknown';
-        }
-      },
+        this.$eos.contract("firewall").then(myaccount =>
+          myaccount.checktrust(this.account_name, {authorization: 'firewall'}).then(response => {
+              this.account_result = 'safe';
+            },
+            error => {
+              this.$eos.contract("firewall").then(myaccount =>
+                myaccount.checkacct(this.account_name, 0, {authorization: 'firewall'}).then(response => {
+                    this.account_result = 'unknown';
+                  },
+                  error => {
+                    this.account_result = 'bad';
+                  }
+                ));
+            }
+          ));
+        },
       report() {
         this.SubmitHidden = false;
       }
@@ -177,31 +204,9 @@
   .page {
     height: 100vh;
   }
-  .info_card{
-    min-height: 30vh;
-  }
-
-  .page_title {
-    font-size: 200px;
-    margin: 0px;
-    padding: 0px;
-    border: 0px;
-    text-align: center;
-  }
-
-  .iCountUp {
-    font-size: 16em;
-    color: #4d63bc;
-  }
-
-  .threats_tracked {
-    font-style: italic;
-    margin-left: 160px;
-    margin-right: 0px;
-  }
 
   .account_row {
-    margin-top: 10px;
+    padding-top: 30vh;
   }
 
   .account_text {
@@ -218,7 +223,7 @@
     font-style: italic;
     width: 340px;
     font-size: 50px;
-    height: 60px;
+    height: 70px;
   }
 
   .account_results {
